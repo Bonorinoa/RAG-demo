@@ -4,6 +4,6 @@ langchain_openai
 huggingface_hub
 tiktoken
 sentence_transformers 
-chromadb
+chromadb==0.3.29
 pypdf
 langchain-community
