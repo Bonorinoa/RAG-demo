@@ -32,7 +32,7 @@ import streamlit as st
 
 ### Global variables ###
 # Load the embeddings model
-BGEembeddings = HuggingFaceBgeEmbeddings(model_name="BAAI/bge-small-en", 
+BGEembeddings = HuggingFaceBgeEmbeddings(model_name="BAAI/bge-base-en-v1.5", 
                                             model_kwargs={"device": "cpu"}, 
                                             encode_kwargs={"normalize_embeddings": True})
 
