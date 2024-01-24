@@ -1,5 +1,5 @@
 # OpenAI models
-from langchain_openai import ChatOpenAI, OpenAI
+from langchain_openai import ChatOpenAI
 
 # HuggingFace Hub models
 from langchain_community.llms import HuggingFaceHub
@@ -19,10 +19,10 @@ from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 # to load all PDF files in a directory
-from langchain_community.document_loaders import DirectoryLoader, PyPDFLoader, PyPDFDirectoryLoader
+from langchain_community.document_loaders import PyPDFDirectoryLoader
 
 # prompt templates
-from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain.prompts import ChatPromptTemplate
 
 # for building a simple chain
 from langchain.chains import LLMChain
@@ -144,7 +144,7 @@ def run_rag_chain(chat_messages,
     rag_chain = build_rag_chain(provider = "openai")
     
     # initialize the retriever and get context
-    retriever = init_retriever(rerank=False)
+    retriever = init_retriever(rerank=True)
     context_docs = retriever.get_relevant_documents(user_query)
     context = format_docs(context_docs)
     
@@ -173,7 +173,7 @@ def run_rag_chain(chat_messages,
     prompt = {"sys_prompt": SYS_PROMPT,
               "chat_history": chat_history}
     
-    response = rag_chain(prompt)['text']
+    response = rag_chain.invoke(prompt)['text']
     
     # return the output
     return response, context_docs
