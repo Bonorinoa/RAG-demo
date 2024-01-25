@@ -1,5 +1,5 @@
 # OpenAI models
-from langchain_openai import ChatOpenAI
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
 # HuggingFace Hub models
 from langchain_community.llms import HuggingFaceHub
@@ -31,10 +31,6 @@ import os
 import streamlit as st
 
 ### Global variables ###
-# Load the embeddings model
-BGEembeddings = HuggingFaceBgeEmbeddings(model_name="BAAI/bge-base-en-v1.5", 
-                                            model_kwargs={"device": "cpu"}, 
-                                            encode_kwargs={"normalize_embeddings": True})
 
 os.environ['OPENAI_API_KEY'] = st.secrets["OPENAI_API_KEY"]
 os.environ['HUGGINGFACEHUB_API_TOKEN'] = st.secrets["HUGGINGFACEHUB_API_TOKEN"]
@@ -78,21 +74,32 @@ def chunk_docs(docs):
     chunked_docs = splitter.split_documents(docs)
     return chunked_docs
 
-def embed_and_index(chunked_docs):
+def embed_and_index(chunked_docs,
+                   provider: str):
+    
+    if provider == "openai":
+        embeddings_model = OpenAIEmbeddings()
+    elif provider == "huggingface":
+        embeddings_model = HuggingFaceBgeEmbeddings(model_name="BAAI/bge-base-en-v1.5", 
+                                                    model_kwargs={"device": "cpu"}, 
+                                                    encode_kwargs={"normalize_embeddings": True})
+    
     # Load the vector store and index chunks
     chroma = Chroma.from_documents(documents=chunked_docs,
-                                    embedding=BGEembeddings)
+                                    embedding=embeddings_model)
         
-    return chroma
+    return chroma, embeddings_model
 
 def init_retriever(rerank: bool):
     docs = load_docs()
     chunked_docs = chunk_docs(docs)
-    vectorstore = embed_and_index(chunked_docs)
+    vectorstore, emb_model = embed_and_index(chunked_docs,
+                                             provider = "openai")
     retriever = vectorstore.as_retriever(search_type="similarity",
                                           search_kwargs={"k": 3})
+    
     if rerank:
-        embeddings_filter = EmbeddingsFilter(embeddings=BGEembeddings, 
+        embeddings_filter = EmbeddingsFilter(embeddings=emb_model, 
                                              similarity_threshold=0.7)
         
         compression_retriever = ContextualCompressionRetriever(base_compressor=embeddings_filter, 
